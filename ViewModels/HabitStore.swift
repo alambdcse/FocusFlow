@@ -32,6 +32,11 @@ final class HabitStore: ObservableObject {
     func toggleHabit(_ habit: Habit, for date: Date = Date()) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
         habits[index].toggleCompletion(for: date)
+
+        if habits[index].reminderEnabled {
+            notificationManager.scheduleReminder(for: habits[index])
+        }
+
         persist()
     }
 
@@ -48,6 +53,18 @@ final class HabitStore: ObservableObject {
         persist()
     }
 
+    func autoTuneReminder(for habit: Habit) {
+        guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
+        guard let suggestion = habits[index].suggestedReminderTime() else { return }
+
+        habits[index].reminderHour = suggestion.hour ?? habits[index].reminderHour
+        habits[index].reminderMinute = suggestion.minute ?? habits[index].reminderMinute
+        habits[index].reminderEnabled = true
+
+        notificationManager.scheduleReminder(for: habits[index])
+        persist()
+    }
+
     var completedTodayCount: Int {
         habits.filter { $0.isCompleted(on: Date()) }.count
     }
@@ -59,6 +76,21 @@ final class HabitStore: ObservableObject {
                 partial + (habit.isCompleted(on: day) ? 1 : 0)
             }
         }.reversed()
+    }
+
+    var weeklyCoachTip: String {
+        let total = weeklyCompletions.reduce(0, +)
+        let maxPossible = habits.count * 7
+        guard maxPossible > 0 else { return "Add your first habit to start coaching insights." }
+
+        let completionRate = Double(total) / Double(maxPossible)
+        if completionRate >= 0.8 {
+            return "Great consistency this week. Try increasing one habit difficulty by 10%."
+        } else if completionRate >= 0.5 {
+            return "You are building momentum. Keep reminders enabled on your weakest habit."
+        } else {
+            return "Lower the habit scope (2-minute version) so you can rebuild your streak quickly."
+        }
     }
 
     private func loadInitialHabits() {
