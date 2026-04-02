@@ -4,11 +4,24 @@ struct Habit: Identifiable, Codable {
     let id: UUID
     var name: String
     var completedDates: Set<Date>
+    var reminderEnabled: Bool
+    var reminderHour: Int
+    var reminderMinute: Int
 
-    init(id: UUID = UUID(), name: String, completedDates: Set<Date> = []) {
+    init(
+        id: UUID = UUID(),
+        name: String,
+        completedDates: Set<Date> = [],
+        reminderEnabled: Bool = false,
+        reminderHour: Int = 20,
+        reminderMinute: Int = 0
+    ) {
         self.id = id
         self.name = name
         self.completedDates = completedDates
+        self.reminderEnabled = reminderEnabled
+        self.reminderHour = reminderHour
+        self.reminderMinute = reminderMinute
     }
 
     func isCompleted(on date: Date, calendar: Calendar = .current) -> Bool {
@@ -43,5 +56,15 @@ struct Habit: Identifiable, Codable {
         }
 
         return streak
+    }
+
+    func weeklyCompletionCount(calendar: Calendar = .current, today: Date = Date()) -> Int {
+        let week = (0..<7).compactMap { offset in
+            calendar.date(byAdding: .day, value: -offset, to: today)
+        }
+
+        return week.reduce(0) { count, date in
+            count + (isCompleted(on: date, calendar: calendar) ? 1 : 0)
+        }
     }
 }
