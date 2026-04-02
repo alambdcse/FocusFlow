@@ -1,4 +1,4 @@
-mport SwiftUI
+import SwiftUI
 
 @main
 struct FocusFlowApp: App {
