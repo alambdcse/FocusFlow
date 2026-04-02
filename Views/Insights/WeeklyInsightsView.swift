@@ -34,6 +34,11 @@ struct WeeklyInsightsView: View {
             Text("Total completions this week: \(store.weeklyCompletions.reduce(0, +))")
                 .font(.headline)
 
+            Text("Coach tip")
+                .font(.headline)
+            Text(store.weeklyCoachTip)
+                .foregroundColor(.secondary)
+
             Spacer()
         }
         .padding()
