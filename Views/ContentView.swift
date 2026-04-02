@@ -45,7 +45,8 @@ struct ContentView: View {
                         HabitRow(
                             habit: habit,
                             onToggle: { store.toggleHabit(habit) },
-                            onReminderToggle: { enabled in store.toggleReminder(for: habit, enabled: enabled) }
+                            onReminderToggle: { enabled in store.toggleReminder(for: habit, enabled: enabled) },
+                            onAutoTune: { store.autoTuneReminder(for: habit) }
                         )
                     }
                 }
@@ -78,6 +79,7 @@ private struct HabitRow: View {
     let habit: Habit
     let onToggle: () -> Void
     let onReminderToggle: (Bool) -> Void
+    let onAutoTune: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -87,6 +89,9 @@ private struct HabitRow: View {
                         .font(.body)
                     Text("Streak: \(habit.currentStreak()) days")
                         .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("Reminder: \(String(format: "%02d:%02d", habit.reminderHour, habit.reminderMinute))")
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                 }
 
@@ -105,6 +110,10 @@ private struct HabitRow: View {
                 set: { onReminderToggle($0) }
             ))
             .font(.caption)
+
+            Button("Auto-tune reminder from my history", action: onAutoTune)
+                .font(.caption)
+                .buttonStyle(.bordered)
         }
         .padding(.vertical, 4)
     }
